@@ -1,7 +1,7 @@
 """
 Author: dev.slife
 Date Created: 2/19/26
-Date Updated: 4/29/26
+Date Updated: 5/14/26
 Description: Connects to the network and manages HTTP requests using REST.
 """
 
@@ -15,6 +15,7 @@ import time
 from .config import (
     WIFI_SSID,
     WIFI_PASSWORD,
+    FORM_MAP,
     SERVER_URL,
     PICO_NAME,
     TIMEOUT_THRESHOLD,
@@ -94,6 +95,31 @@ def url_encode(data: dict):
     return "&".join(parts)
 
 
+def send_payload(payload: dict, headers={}, low_load=False):
+    """
+    Sends a given payload by breaking it down into smaller chunks to prevent timeout errors.
+    
+    Args:
+        payload (dict) - the data to send
+        headers (dict) - the HTTP POST headers
+    """
+    chunksToLoad = [
+        ["Unique ID", "Assigned Room", "Hour Recorded", "Minute Recorded", "Time Recorded"],
+        ["Unique ID", "Year Recorded", "Month Recorded", "Day Recorded", "Date Recorded"],
+        ["Unique ID", "Raw Temperature", "Temperature"],
+        ["Unique ID", "Raw Humidity", "Humidity"]
+    ] if (not low_load) else [
+        ["Unique ID", "Assigned Room", "Raw Temperature", "Raw Humidity"]
+    ]
+    payloadChunks = []
+    for chunk in chunksToLoad:
+        payloadChunks.append([FORM_MAP[key] for key in chunk])
+    for chunk in payloadChunks:
+        subload = {key: payload[key] for key in chunk if key in payload}
+        response = urequests.post(SERVER_URL, data=url_encode(subload), headers=headers, timeout=TIMEOUT_DELAY)
+        response.close()
+
+
 def http_send(payload: dict, max_attempts=TIMEOUT_THRESHOLD):
     """
     Sends an HTTP POST request to the Raspberry Pi Pico Data Collector form.
@@ -111,9 +137,8 @@ def http_send(payload: dict, max_attempts=TIMEOUT_THRESHOLD):
                     "User-Agent":  "RaspberryPi"+PICO_NAME,
                     "Content-Type": "application/x-www-form-urlencoded"
                 }
-                response = urequests.post(SERVER_URL, data=url_encode(payload), headers=headers, timeout=TIMEOUT_DELAY)
-                print(f"HTTP Status: {response.status_code}")
-                response.close()
+                send_payload(payload, headers=headers, low_load=True)
+                print("Payload successfully POST.")
                 return True
             except Exception as e:
                 err_reasons.add(f"{type(e).__name__}: {e}")

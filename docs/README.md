@@ -85,6 +85,7 @@ There are multiple different values which can be changed to your preference when
         - For date format, use `Year Recorded`, `Month Recorded`, and `Day Recorded`
         - For time format, use `Hour Recorded` and `Minute Recorded`
         - leave mappings you don't use blank, so the pico knows to ignore that data when sending it to the google form
+    - `REPORTING_TIMES`: A list of military times to report the data collected from the Pico to the server
 
 ### Connecting To WiFi
 In order to have the Pico POST to a google form (or a preferred server), you need to be connected to the internet. Below are quick instructions to make sure your Raspberry Pi Pico can establish a connection.

@@ -1,7 +1,7 @@
 """
 Author: dev.slife
 Date Created: 2/18/26
-Date Updated: 4/14/26
+Date Updated: 5/12/26
 Description: Handles local time and date information.
 """
 
@@ -9,6 +9,7 @@ Description: Handles local time and date information.
 # ---------------------- IMPORT MODULES ---------------------- #
 
 from .piconet import http_request
+from .config import REPORTING_TIMES
 
 
 # ------------------------ CONSTANTS ------------------------ #
@@ -164,3 +165,27 @@ def get_time() -> str:
     # subtract 5 from hours to convert from UTC to EST
     localTime = getLocalTime()
     return "Unknown" if not localTime else f"{format(localTime[3])}:{format(localTime[4])}:{format(localTime[5])}"
+
+
+
+# ----------------------- REPORTING TIME ----------------------- #
+
+def isTimeToReport(t) -> bool:
+    """
+    Checks if it's time to report the data.
+    
+    Args:
+        t (str) - the time to check [format "00:00:00"]
+    
+    Returns:
+        A boolean result of true if the time matches and false otherwise.
+    """
+    if (t != "Unknown"):
+        t_h, t_m, _, = map(int, t.split(":"))
+        
+        for reporttime in REPORTING_TIMES:
+            rt_h, rt_m, _, = map(int, reporttime.split(":"))
+            if t_h == rt_h and t_m == rt_m:
+                return True
+
+    return False

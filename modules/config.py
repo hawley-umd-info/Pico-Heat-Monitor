@@ -1,7 +1,7 @@
 """
 Author: dev.slife
 Date Created: 2/19/26
-Date Updated: 4/14/26
+Date Updated: 5/12/26
 Description: Holds configuration values for Pico Heat Monitor.
 """
 
@@ -9,7 +9,7 @@ Description: Holds configuration values for Pico Heat Monitor.
 
 CLOCK_SPEED = 1
 UPDATE_THRESHOLD = 60
-TIMEOUT_THRESHOLD = 5
+TIMEOUT_THRESHOLD = 10
 TIMEOUT_DELAY = 1
 WIFI_DELAY = 30
 TEMP_OFFSET = 2
@@ -51,3 +51,9 @@ FORM_MAP = {
     "Raw Humidity": "",
     "Humidity": ""
 }
+
+REPORTING_TIMES = [
+   "10:30:00", # 10:30am 
+   "13:30:00", # 1:30am
+   "16:30:00"  # 4:30am
+]

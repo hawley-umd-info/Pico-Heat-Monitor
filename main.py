@@ -1,7 +1,7 @@
 """
 Author: dev.slife
 Date Created: 2/18/26
-Date Updated: 4/29/26
+Date Updated: 5/14/26
 Description: Monitors the Temperature and Humidity Levels of a room.
 """
 
@@ -92,7 +92,7 @@ def show_screen(data: OrderedDict, curTime: str):
         f"Date: {dateRecorded}",
         f"Time: {curTime}"
     ]
-    
+
     for i in range(len(buffer)):
         line = buffer[i]
         OLED.text(line, 0, 12*i)
@@ -195,22 +195,24 @@ def main():
                 curTime = reading["Time Recorded"]
                 display(reading)
                 print("---------------------------------")
-                csv_append(reading)
-                serializedData = serializeCSV()
-                linesToRemove = []
-                if (serializedData):
-                    for payload in serializedData:
-                        # successful POSTS means we can remove local data
-                        if http_send(payload[0]): linesToRemove.append(payload[1])
-                    if (linesToRemove):
-                        csv_remove(tuple(linesToRemove))
+                shouldreport = isTimeToReport(curTime)
+                if shouldreport:
+                    csv_append(reading)
+                    serializedData = serializeCSV()
+                    linesToRemove = []
+                    if (serializedData):
+                        for payload in serializedData:
+                            # successful POSTS means we can remove local data
+                            if http_send(payload[0]): linesToRemove.append(payload[1])
+                        if (linesToRemove):
+                            csv_remove(tuple(linesToRemove))
             show_screen(reading, curTime)
             curTime = local_inc_time(curTime, 's', CLOCK_SPEED) or curTime
             count += CLOCK_SPEED
             sleep(CLOCK_SPEED)
         except Exception as e:
             print(f"A(n) {type(e).__name__} has occurred: {e}")
-    
+
 
 if __name__ == "__main__":
     main()

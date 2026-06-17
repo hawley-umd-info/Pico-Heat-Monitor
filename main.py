@@ -80,17 +80,19 @@ def show_screen(data: OrderedDict, curTime: str):
     
     dateRecorded = data["Date Recorded"]
     
-    if (dateRecorded != "Unknown"):
+    if (dateRecorded):
         dateSplit = dateRecorded.split("-")
         Y = dateSplit[0]
         M = dateSplit[1]
         D = dateSplit[2]      
         dateRecorded = f"{M}/{D}/{Y}"
+    else:
+        dateRecorded = "Unknown"
 
     buffer = [
         f"F: {data["Temperature"]} H: {data["Humidity"]}%",
         f"Date: {dateRecorded}",
-        f"Time: {curTime}"
+        f"Time: {curTime if (curTime) else "Unknown"}"
     ]
 
     for i in range(len(buffer)):
@@ -129,8 +131,8 @@ def build_data(curDate, curTime) -> OrderedDict:
         - the room number the Pico is assigned in
     """
     # Date & Time
-    curTimeSplit = curTime.split(":") if (curTime != "Unknown") else ["Unknown", "Unknown"]
-    curDateSplit = curDate.split("-") if (curDate != "Unknown") else ["Unknown", "Unknown", "Unknown"]
+    curTimeSplit = curTime.split(":") if (curTime) else ["Unknown", "Unknown"]
+    curDateSplit = curDate.split("-") if (curDate) else ["Unknown", "Unknown", "Unknown"]
     curHour = curTimeSplit[0]
     curMin = curTimeSplit[1]
     curYear = curDateSplit[0]

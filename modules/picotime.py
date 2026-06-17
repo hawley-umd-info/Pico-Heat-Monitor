@@ -238,7 +238,7 @@ def isTimeToReport(t) -> bool:
     Returns:
         A boolean result of true if the time matches and false otherwise.
     """
-    if (t != "Unknown"):
+    if (t):
         t_h, t_m, _, = map(int, t.split(":"))
         
         for reporttime in REPORTING_TIMES:

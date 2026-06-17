@@ -1,7 +1,7 @@
 """
 Author: dev.slife
 Date Created: 2/19/26
-Date Updated: 5/12/26
+Date Updated: 6/17/26
 Description: Holds configuration values for Pico Heat Monitor.
 """
 
@@ -12,14 +12,14 @@ UPDATE_THRESHOLD = 60
 TIMEOUT_THRESHOLD = 10
 TIMEOUT_DELAY = 1
 WIFI_DELAY = 30
-TEMP_OFFSET = 2
+TEMP_OFFSET = -2
 HUM_OFFSET = 8
 
 
 # ------------------------- DEVICE INFO ------------------------- #
 
 PICO_NAME = "Pico<#1>"
-PICO_ROOM = "Room<#1>"
+PICO_ROOM = "Unassigned"
 
 
 # ------------------------- PIN CONFIG ------------------------- #
@@ -34,8 +34,8 @@ OLED_SCL_PIN = 7
 
 WIFI_SSID = ""
 WIFI_PASSWORD = ""
-SERVER_URL = ""
 CSV_FILE = "PICO_DATA.csv"
+SERVER_URL = ""
 FORM_MAP = {
     "Unique ID": "",
     "Assigned Room": "",

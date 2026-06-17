@@ -1,7 +1,7 @@
 """
 Author: dev.slife
 Date Created: 2/18/26
-Date Updated: 5/14/26
+Date Updated: 6/17/26
 Description: Monitors the Temperature and Humidity Levels of a room.
 """
 
@@ -81,7 +81,7 @@ def show_screen(data: OrderedDict, curTime: str):
     dateRecorded = data["Date Recorded"]
     
     if (dateRecorded != "Unknown"):
-        dateSplit = dateRecorded.split("/")
+        dateSplit = dateRecorded.split("-")
         Y = dateSplit[0]
         M = dateSplit[1]
         D = dateSplit[2]      
@@ -104,9 +104,13 @@ def show_screen(data: OrderedDict, curTime: str):
 
 # ------------------ READING + FORMATTING DATA ------------------ #
 
-def build_data() -> OrderedDict:
+def build_data(curDate, curTime) -> OrderedDict:
     """
     Builds a row of data from the temperature sensor.
+    
+    Args:
+        curDate (str) - the current date given
+        curTime (str) - the current time given
     
     Returns:
         A dictionary containing the following:
@@ -125,9 +129,8 @@ def build_data() -> OrderedDict:
         - the room number the Pico is assigned in
     """
     # Date & Time
-    curTime, curDate = get_time(), get_date()
     curTimeSplit = curTime.split(":") if (curTime != "Unknown") else ["Unknown", "Unknown"]
-    curDateSplit = curDate.split("/") if (curDate != "Unknown") else ["Unknown", "Unknown", "Unknown"]
+    curDateSplit = curDate.split("-") if (curDate != "Unknown") else ["Unknown", "Unknown", "Unknown"]
     curHour = curTimeSplit[0]
     curMin = curTimeSplit[1]
     curYear = curDateSplit[0]
@@ -180,23 +183,19 @@ def display(data: dict):
 
 # ------------------------- MAIN CODE ------------------------- #
 
-def main():
-    connect_wifi()
-    count = UPDATE_THRESHOLD
+def monitor(clock=PicoClock(), count=UPDATE_THRESHOLD):
     while True:
         try:
-            if not has_wifi() and count >= (WIFI_DELAY * 60):
+            if (not has_wifi() and count >= (WIFI_DELAY * 60)):
                 count = 0
                 connect_wifi()
-            if count % UPDATE_THRESHOLD == 0:
+            if (count % UPDATE_THRESHOLD == 0):
                 # only reset count if there is a wifi connection
                 if has_wifi(): count = 0
-                reading = build_data()
-                curTime = reading["Time Recorded"]
+                reading = build_data(clock.date, clock.time)
                 display(reading)
                 print("---------------------------------")
-                shouldreport = isTimeToReport(curTime)
-                if shouldreport:
+                if (isTimeToReport(clock.time)):
                     csv_append(reading)
                     serializedData = serializeCSV()
                     linesToRemove = []
@@ -206,12 +205,19 @@ def main():
                             if http_send(payload[0]): linesToRemove.append(payload[1])
                         if (linesToRemove):
                             csv_remove(tuple(linesToRemove))
-            show_screen(reading, curTime)
-            curTime = local_inc_time(curTime, 's', CLOCK_SPEED) or curTime
+                    clock.sync()
+            show_screen(reading, clock.time)
+            clock.inc_time('s', CLOCK_SPEED)
             count += CLOCK_SPEED
             sleep(CLOCK_SPEED)
         except Exception as e:
             print(f"A(n) {type(e).__name__} has occurred: {e}")
+
+
+
+def main():
+    connect_wifi()
+    monitor()
 
 
 if __name__ == "__main__":

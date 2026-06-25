@@ -26,7 +26,7 @@ from .config import (
 # ------------------------ CONSTANTS ------------------------ #
 
 TIME_SERVER = "https://timeapi.io/api/v1/time/current/zone?timezone=America%2FNew_York"
-WLAN = network.WLAN(network.STA_IF)
+WLAN = network.WLAN(network.WLAN.IF_STA)
 WLAN.active(True)
 
 
@@ -51,7 +51,8 @@ def disconnect_wifi():
 def connect_wifi():
     """Connects the Pico to the network."""
     count = 0
-    
+    print(f"Mac Address is {grab_MAC()}")
+
     if not has_wifi():
         print(f"Attempting to connect to {WIFI_SSID}...")
         WLAN.connect(WIFI_SSID, WIFI_PASSWORD)
@@ -64,7 +65,7 @@ def connect_wifi():
         print("Network config:", WLAN.ifconfig())
     else:
         disconnect_wifi()
-        print(f"WARNING: Connection timed out, unable to connect to {WIFI_SSID}. Please make sure you have the correct SSID and password set.")
+        print(f"WARNING: Connection timed out, unable to connect to {WIFI_SSID}. Please make sure you have the correct SSID and password set.  WLAN Status:{WLAN.status}")
     
 
 def grab_MAC():

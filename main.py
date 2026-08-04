@@ -214,14 +214,26 @@ def monitor(clock=PicoClock(), count=UPDATE_THRESHOLD):
             count += CLOCK_SPEED
             sleep(CLOCK_SPEED)
         except Exception as e:
-            print(f"A(n) {type(e).__name__} has occurred: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            print(f"A(n) {type(e).__name__} has occurred: {e}.  Line {exc_tb.tb_lineno}")
 
+
+def screenLog(text):
+    OLED.fill(0)
+    OLED.text(text,0,0,1)
+    OLED.show()
+    sleep(2)
+
+  
 
 
 def main():
+    screenLog("Connecting to wifi")
     connect_wifi()
-    monitor()
-
+    screenLog(f"has_wifi = {has_wifi()}")
+    clock=PicoClock()
+    screenLog(f"time is {clock.time}")
+    monitor(clock)
 
 if __name__ == "__main__":
     main()

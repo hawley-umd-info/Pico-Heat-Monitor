@@ -200,7 +200,10 @@ def monitor(clock=None, count=UPDATE_THRESHOLD):
             if (not has_wifi() and count >= (WIFI_DELAY * 60)):
                 count = 0
                 connect_wifi()
-                if (has_wifi()): clock.setRtcFromNtpTime()
+                if (has_wifi()): clock.trySync()
+            # retry the clock sync once per reading if it failed on boot or after a reconnect
+            if (has_wifi() and not clock.synced and count % UPDATE_THRESHOLD == 0):
+                clock.trySync()
             if (count % UPDATE_THRESHOLD == 0):
                 # only reset count if there is a wifi connection
                 if (has_wifi()): count = 0
@@ -223,8 +226,8 @@ def monitor(clock=None, count=UPDATE_THRESHOLD):
             count += CLOCK_SPEED
             sleep(CLOCK_SPEED)
         except Exception as e:
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            print(f"A(n) {type(e).__name__} has occurred: {e}.  Line {exc_tb.tb_lineno}")
+            print(f"A(n) {type(e).__name__} has occurred: {e}.")
+            sleep(WIFI_DELAY * 60)
 
 
 def screenLog(text):

@@ -3,6 +3,7 @@ from time import gmtime
 import socket
 import struct
 import machine
+from .errlog import log_error
 
 from .config import REPORTING_TIMES
 
@@ -101,7 +102,7 @@ class piClock:
         try:
             self.setRtcFromNtpTime()
         except Exception as e:
-            print(f"WARNING: Unable to sync clock from {self.host}: {type(e).__name__}: {e}")
+            log_error(f"WARNING: Unable to sync clock from {self.host}: {type(e).__name__}: {e}")
         return self.synced
 
 

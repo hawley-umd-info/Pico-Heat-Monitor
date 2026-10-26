@@ -12,6 +12,7 @@ import ubinascii
 import urequests
 import network
 import time
+from .errlog import log_error
 from .config import (
     WIFI_SSID,
     WIFI_PASSWORD,
@@ -65,7 +66,7 @@ def connect_wifi():
         print("Network config:", WLAN.ifconfig())
     else:
         disconnect_wifi()
-        print(f"WARNING: Connection timed out, unable to connect to {WIFI_SSID}. Please make sure you have the correct SSID and password set.  WLAN Status:{WLAN.status}")
+        log_error(f"WARNING: Connection timed out, unable to connect to {WIFI_SSID}. Please make sure you have the correct SSID and password set.  WLAN Status: {WLAN.status()}")
     
 
 def grab_MAC():
@@ -110,7 +111,9 @@ def send_payload(payload: dict, headers={}, low_load=False):
         ["Unique ID", "Raw Temperature", "Temperature"],
         ["Unique ID", "Raw Humidity", "Humidity"]
     ] if (not low_load) else [
-        ["Unique ID", "Assigned Room", "Raw Temperature", "Raw Humidity"]
+        # include when the reading was taken, since cached readings are sent later
+        ["Unique ID", "Assigned Room", "Raw Temperature", "Raw Humidity",
+         "Year Recorded", "Month Recorded", "Day Recorded", "Hour Recorded", "Minute Recorded"]
     ]
     payloadChunks = []
     for chunk in chunksToLoad:
@@ -130,8 +133,8 @@ def http_send(payload: dict, max_attempts=TIMEOUT_THRESHOLD):
         max_attempts (int) - the amount of attempts it uses to POST
     """
     if (has_wifi()):
+        err_reasons = set()
         for i in range(max_attempts):
-            err_reasons = set()
             try:
                 headers = {
                     "Host": "docs.google.com",
@@ -143,5 +146,5 @@ def http_send(payload: dict, max_attempts=TIMEOUT_THRESHOLD):
                 return True
             except Exception as e:
                 err_reasons.add(f"{type(e).__name__}: {e}")
-        print(f"Failed to POST, Given Errors: [{", ".join(err_reasons)}]")
+        log_error(f"Failed to POST after {max_attempts} attempts, Given Errors: [{", ".join(err_reasons)}]")
     return False

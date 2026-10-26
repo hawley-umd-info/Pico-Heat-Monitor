@@ -8,10 +8,12 @@ Description: Monitors the Temperature and Humidity Levels of a room.
 
 # ---------------------- IMPORT MODULES ---------------------- #
 
-from machine import Pin, I2C, reset
+from machine import Pin, I2C, reset, reset_cause
+import machine
 from modules.ntptime import *
 from modules.picodata import *
 from modules.piconet import http_send, connect_wifi, has_wifi
+from modules.errlog import log_error
 from modules.config import (
     CLOCK_SPEED,
     UPDATE_THRESHOLD,
@@ -194,7 +196,7 @@ def monitor(clock=None, count=UPDATE_THRESHOLD):
     while True:
         # restart if unable to connect to wifi or record data for too long
         if (ticks_diff(ticks_ms(), lastSuccess) >= RESET_THRESHOLD * 3600 * 1000):
-            print(f"No data recorded in {RESET_THRESHOLD} hours, restarting...")
+            log_error(f"No data recorded in {RESET_THRESHOLD} hours, restarting...")
             reset()
         try:
             if (not has_wifi() and count >= (WIFI_DELAY * 60)):
@@ -226,7 +228,7 @@ def monitor(clock=None, count=UPDATE_THRESHOLD):
             count += CLOCK_SPEED
             sleep(CLOCK_SPEED)
         except Exception as e:
-            print(f"A(n) {type(e).__name__} has occurred: {e}.")
+            log_error(f"A(n) {type(e).__name__} has occurred: {e}.")
             sleep(WIFI_DELAY * 60)
 
 
@@ -240,8 +242,19 @@ def screenLog(text):
   
 
 
+def boot_reason() -> str:
+    """Names the cause of the last reset, e.g. power on or watchdog."""
+    cause = reset_cause()
+    for name in ("PWRON_RESET", "HARD_RESET", "WDT_RESET", "DEEPSLEEP_RESET", "SOFT_RESET"):
+        if (cause == getattr(machine, name, None)):
+            return name
+    return str(cause)
+
+
 def main():
     print('main')
+    # the clock isn't synced yet, so this entry is timestamped from the RTC's default date
+    log_error(f"Booted, reset cause: {boot_reason()}")
     screenLog("Connecting\nto wifi")
     connect_wifi()
     screenLog(f"wifi = {has_wifi()}")

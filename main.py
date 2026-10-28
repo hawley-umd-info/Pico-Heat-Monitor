@@ -217,11 +217,19 @@ def monitor(clock=None, count=UPDATE_THRESHOLD):
                     serializedData = serializeCSV()
                     linesToRemove = []
                     if (serializedData):
-                        for payload in serializedData:
+                        for i in range(len(serializedData)):
+                            payload = serializedData[i]
+                            # the last row is the reading just taken; older rows are queued
+                            # and need the time they were recorded sent with them
+                            isQueued = (i < len(serializedData) - 1)
                             # successful POSTS means we can remove local data
-                            if http_send(payload[0]):
+                            if http_send(payload[0], include_time=isQueued):
                                 linesToRemove.append(payload[1])
                                 lastSuccess = ticks_ms()
+                            else:
+                                # keep the rest queued for the next report rather than
+                                # spending every attempt on a connection that is failing
+                                break
                         if (linesToRemove):
                             csv_remove(tuple(linesToRemove))
             show_screen(reading, clock.time)
